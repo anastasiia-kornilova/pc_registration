@@ -2,6 +2,21 @@ import open3d
 import numpy as np
 import glob
 import copy
+import time
+
+
+# Save pcd to png file. You have 5 seconds to rotate pcd for preferred position.
+def save_pcd_to_png(name, pcd):
+    vis = open3d.visualization.Visualizer()
+    vis.create_window()
+    vis.add_geometry(pcd)
+    vis.update_geometry()
+    vis.poll_events()
+    vis.update_renderer()
+    vis.run()
+    time.sleep(3)
+    vis.capture_screen_image(name)
+    vis.destroy_window()
 
 
 def draw_registration_result(source, target):
