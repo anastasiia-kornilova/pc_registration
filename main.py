@@ -43,11 +43,8 @@ if __name__ == '__main__':
     print(files[0])
     for file in files:
         pcds.append(open3d.io.read_point_cloud(file))
-    print(pcds[0].has_normals())
-    print(pcds[0].has_colors())
-    source = pcds[0]
-    trans_sum_approximation = np.eye(4)
 
+    trans_sum_approximation = np.eye(4)
     pcd_full = [pcds[0]]
     for i in range(0, 70):
         # if i in chain(range(51, 95), range(105, 120)):
