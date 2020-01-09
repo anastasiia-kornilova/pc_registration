@@ -59,9 +59,32 @@ Attention: in PCD-file color fields should be normalized to be correctly process
 In this repo conversion tool is implemented in `color_extractor.py`.
 It removes `ring` and `timestamp` fields, as well as normalizes `intensity` field to [0, 1].
 
-TODO: add image to show how it looks with intensity as colors.
+On the image below intensity as color PCD is shown.
+It seems that there are some patterns on walls, that can be used in advanced ICP.
+
+![Intensity as color](images/colored_intensity.png)
+
+#### Good segments from dataset and bad artifacts
+
+There is a set of images in dataset with some effects,
+that produces bad results in alignment. Main hypothesis of such effects
+is movement of the sensor similar to the "rolling-shutter" effect in CMOS cameras.
+
+Dataset contains 305 PCDs. From 0 to 50 they are looked good enough. ICP produces the
+next result on those frames.
+
+![From 1 to 50 frames](images/1to50.png)
+
+
+Images from 51 till 95 seems to be distorted. Distortions are produced by
+sharp movement (or maybe I've mistaken). Below some examples with marked distortions
+-- undesirable gaps and intersections -- are demonstrated. They should be dropped from
+frames for alignment, because they produce incorrect planes.
+
+![Frame 54](images/gap_demo_54.png)
+![Frame 75](images/gap_demo_75.png)
+![Frame 80](images/gap_demo_80.png)
 
 #### To be described:
-* Artifacts describing (TODO: search on approaches about "rolling shutter" for LIDARs)
 * Last raw of scanner
 * Approaches with colored ICP
