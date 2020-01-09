@@ -46,17 +46,22 @@ if __name__ == '__main__':
 
     trans_sum_approximation = np.eye(4)
     pcd_full = [pcds[0]]
-    for i in range(0, 70):
-        # if i in chain(range(51, 95), range(105, 120)):
-        #     print(i)
-        #     continue
+    for i in range(0, 150):
+        # (0,70)(70,120)(120,165) -- good division
 
         trans = find_transfomation(pcds[i + 1], pcds[i], np.eye(4))
         trans_sum_approximation = trans @ trans_sum_approximation
+        res_trans = find_transfomation(pcds[i + 1], pcd_full[-1], trans_sum_approximation)
+        trans_sum_approximation = res_trans
         # Above we calculate approximation, error can be increased if we apply this transformation directly
         # Therefore the second estimation (below) for transformation is used
-        res_trans = find_transfomation(pcds[i + 1], pcd_full[i], trans_sum_approximation)
-        source = copy.deepcopy(pcds[i + 1]).transform(res_trans)
-        pcd_full.append(source)
+        # Also this approximation will be useful when skipping some frames
+        if i not in chain(range(51, 90), range(105, 120)):
+            source = copy.deepcopy(pcds[i + 1]).transform(res_trans)
+            pcd_full.append(source)
 
+    res = pcd_full[0]
+    for i in range(len(pcd_full)):
+        res += pcd_full[i]
+    save_pcd_to_png("0-150.png", res)
     open3d.visualization.draw_geometries(pcd_full)
