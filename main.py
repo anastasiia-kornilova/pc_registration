@@ -3,7 +3,7 @@ import numpy as np
 import glob
 import copy
 import time
-from itertools import chain
+import numpy.linalg
 
 
 # Save pcd to png file. You have 5 seconds to rotate pcd for preferred position.
@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     trans_sum_approximation = np.eye(4)
     pcd_full = [pcds[0]]
-    for i in range(0, 150):
+    for i in range(0, 304):
         # (0,70)(70,120)(120,165) -- good division
 
         trans = find_transfomation(pcds[i + 1], pcds[i], np.eye(4))
@@ -56,12 +56,8 @@ if __name__ == '__main__':
         # Above we calculate approximation, error can be increased if we apply this transformation directly
         # Therefore the second estimation (below) for transformation is used
         # Also this approximation will be useful when skipping some frames
-        if i not in chain(range(51, 90), range(105, 120)):
+        if numpy.linalg.norm(trans[:, -1][:-1]) < 0.023:
             source = copy.deepcopy(pcds[i + 1]).transform(res_trans)
             pcd_full.append(source)
 
-    res = pcd_full[0]
-    for i in range(len(pcd_full)):
-        res += pcd_full[i]
-    save_pcd_to_png("0-150.png", res)
     open3d.visualization.draw_geometries(pcd_full)

@@ -85,6 +85,23 @@ frames for alignment, because they produce incorrect planes.
 ![Frame 75](images/gap_demo_75.png)
 ![Frame 80](images/gap_demo_80.png)
 
+For othe frames it is difficult to find out artifacts like in previous segments.
+Alignment results show that they exist, but it is difficult to find them visually.
+
+#### Automatization of dropping frames with artifacts
+
+It seems, that artifacts arise when transition of sensor is too much between frames.
+As the next step transition vector from transformation between frames was extracted and
+its norm was estimated. Below plot with transition norms is attached.
+
+![Transition norm estimation](images/trans_vector_norm.png)
+
+Frames with transition vector norm higher than some border (red line on the plot) is dropped during algorithm.
+The remained amount of frames is approximately 1/3 of all 305 frames.
+Alignment algorithm gives the next result on them. It seems to me, that it is good and doesn't "flow".
+
+![0 to 305 frames](images/0-305.png)
+
 #### To be described:
 * Last raw of scanner
 * Approaches with colored ICP
