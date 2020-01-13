@@ -10,7 +10,6 @@ def convert_file(file_path, new_file_path):
     f = open(file_path, 'r')
     new_f = open(new_file_path, 'w')
 
-    # TODO: add convertion of header -- now it should be converted manually
     i = 0
     for l in f:
         if i < PCD_HEADER_SIZE:

@@ -20,7 +20,7 @@ def save_pcd_to_png(name, pcd):
     vis.destroy_window()
 
 
-def find_transfomation(source, target, trans_init):
+def find_transformation(source, target, trans_init):
     source_temp = copy.deepcopy(source)
     target_temp = copy.deepcopy(target)
     threshold = 0.2
@@ -49,9 +49,9 @@ if __name__ == '__main__':
     for i in range(0, 304):
         # (0,70)(70,120)(120,165) -- good division
 
-        trans = find_transfomation(pcds[i + 1], pcds[i], np.eye(4))
+        trans = find_transformation(pcds[i + 1], pcds[i], np.eye(4))
         trans_sum_approximation = trans @ trans_sum_approximation
-        res_trans = find_transfomation(pcds[i + 1], pcd_full[-1], trans_sum_approximation)
+        res_trans = find_transformation(pcds[i + 1], pcd_full[-1], trans_sum_approximation)
         trans_sum_approximation = res_trans
         # Above we calculate approximation, error can be increased if we apply this transformation directly
         # Therefore the second estimation (below) for transformation is used
