@@ -4,6 +4,7 @@ import glob
 import copy
 import time
 import numpy.linalg
+import mrob
 
 
 # Save pcd to png file. You have 5 seconds to rotate pcd for preferred position.
@@ -56,7 +57,7 @@ if __name__ == '__main__':
         # Above we calculate approximation, error can be increased if we apply this transformation directly
         # Therefore the second estimation (below) for transformation is used
         # Also this approximation will be useful when skipping some frames
-        if numpy.linalg.norm(trans[:, -1][:-1]) < 0.023:
+        if numpy.linalg.norm(mrob.SE3(trans).ln()) < 0.03:
             source = copy.deepcopy(pcds[i + 1]).transform(res_trans)
             pcd_full.append(source)
 

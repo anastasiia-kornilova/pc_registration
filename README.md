@@ -102,6 +102,16 @@ Alignment algorithm gives the next result on them. It seems to me, that it is go
 
 ![0 to 305 frames](images/0-305.png)
 
+Also, it was suggested to use more robust sophisticated metrics to analyze artifacts presence -- metrics for transformation and rotation from `mrob`.
+On the plot below results of metrics function are demonstrated.
+
+![Different metrics](images/different_metrics.png)
+
+Playing with different borders for those metrics gives improvements only for transformation metric.
+It is shown on the attached image -- chair has more holistic structure.
+
+![Improvements using tranformation metric](images/0-305_transformation_metric.png)
+
 #### To be described:
 * Last raw of scanner
 * Approaches with colored ICP
