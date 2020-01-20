@@ -22,14 +22,14 @@ def save_pcd_to_png(name, pcd):
 
 
 def find_transformation(source, target, trans_init):
-    source_temp = copy.deepcopy(source)
-    target_temp = copy.deepcopy(target)
     threshold = 0.2
-    source_temp.estimate_normals(search_param=open3d.geometry.KDTreeSearchParamHybrid(
-        radius=0.5, max_nn=50))
-    target_temp.estimate_normals(search_param=open3d.geometry.KDTreeSearchParamHybrid(
-        radius=0.5, max_nn=50))
-    transformation = open3d.registration.registration_icp(source_temp, target_temp, threshold
+    if not source.has_normals():
+        source.estimate_normals(search_param=open3d.geometry.KDTreeSearchParamHybrid(
+            radius=0.5, max_nn=50))
+    if not target.has_normals():
+        target.estimate_normals(search_param=open3d.geometry.KDTreeSearchParamHybrid(
+            radius=0.5, max_nn=50))
+    transformation = open3d.registration.registration_icp(source, target, threshold
         , trans_init,open3d.registration.TransformationEstimationPointToPlane()).transformation
     return transformation
 
@@ -39,6 +39,7 @@ if __name__ == '__main__':
     files = glob.glob('./pcds/*.pcd')
     print(len(files))
     files.sort()
+    files = files[:300]
 
     pcds = []
     print(files[0])
@@ -47,9 +48,8 @@ if __name__ == '__main__':
 
     trans_sum_approximation = np.eye(4)
     pcd_full = [pcds[0]]
-    for i in range(0, 304):
-        # (0,70)(70,120)(120,165) -- good division
-
+    cnt = 0
+    for i in range(0, 270):
         trans = find_transformation(pcds[i + 1], pcds[i], np.eye(4))
         trans_sum_approximation = trans @ trans_sum_approximation
         res_trans = find_transformation(pcds[i + 1], pcd_full[-1], trans_sum_approximation)
@@ -58,7 +58,10 @@ if __name__ == '__main__':
         # Therefore the second estimation (below) for transformation is used
         # Also this approximation will be useful when skipping some frames
         if numpy.linalg.norm(mrob.SE3(trans).ln()) < 0.03:
+            cnt += 1
+            print(i)
             source = copy.deepcopy(pcds[i + 1]).transform(res_trans)
             pcd_full.append(source)
 
+    print(cnt)
     open3d.visualization.draw_geometries(pcd_full)
