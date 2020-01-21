@@ -1,5 +1,10 @@
 import sys
+import os
 import glob
+import logger
+
+from logger import get_configured_logger_by_name
+logger = get_configured_logger_by_name(__file__)
 
 PCD_HEADER_SIZE = 11
 VELODYNE_MAX_INTENSITY = 255
@@ -43,7 +48,7 @@ def convert_file(file_path, new_file_path, conv_type='timestamp'):
             parts[-1] = str(timestamp)
             new_f.write(' '.join(parts) + '\n')
         else:
-            print('Type {0} of conversion does not supported'.format(type))
+            logger.error('Type {0} of conversion does not supported'.format(conv_type))
             break
 
     f.close()
@@ -53,9 +58,17 @@ def convert_file(file_path, new_file_path, conv_type='timestamp'):
 # To use: color_extractor.py <path to dir with raw pcd> <path to dir with new pcd with colors>
 if __name__ == '__main__':
     ex_dir = sys.argv[1]
+    if not os.path.exists(ex_dir):
+        logger.error('Folder {0} with PCDs does not exist.'.format(ex_dir))
+
     new_dir = sys.argv[2]
+    if not os.path.exists(new_dir):
+        logger.error('Folder {0} for result does not exist.'.format(new_dir))
+
     files = glob.glob(ex_dir + '/*.pcd')
     files.sort()
+    logger.info('Read {0} PCDs from {1}'.format(len(files), ex_dir))
+
     i = 0
     for file in files:
         convert_file(file, new_dir + f'{i:03d}.pcd')
