@@ -53,7 +53,7 @@ To convert all folder of PCDs to new folder use:
 
 #### Conversion to colored format
 Besides point clouds, VLP-16 Puck LITE produces also intensity of each point. 
-This information can be used in different approaches in ICP with Colored points (the basic one is presented in [examples](www.open3d.org/docs/release/tutorial/Advanced/colored_pointcloud_registration.html) of Open3D). 
+This information can be used in different approaches in ICP with Colored points (the basic one is presented in [examples](http://www.open3d.org/docs/release/tutorial/Advanced/colored_pointcloud_registration.html) of Open3D). 
 Attention: in PCD-file color fields should be normalized to be correctly processed by Open3D IO-tools. 
 
 In this repo conversion tool is implemented in `color_extractor.py`.
