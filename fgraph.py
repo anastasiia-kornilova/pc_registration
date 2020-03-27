@@ -3,6 +3,7 @@ import numpy as np
 import glob
 import open3d
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 
 def print_3d_graph(graph):
@@ -20,7 +21,6 @@ def print_3d_graph(graph):
         ax.plot((prev_p[0],p[0]),(prev_p[1],p[1]),(prev_p[2],p[2]) , '-b')
         prev_p = np.copy(p)
     plt.show()
-
 
 
 def find_transformation(source, target, trans_init):
@@ -51,24 +51,31 @@ if __name__ == '__main__':
     graph = mrob.FGraph()
     x1 = np.zeros(6)
     # First pose
-    n1 = graph.add_node_pose_3d(x1)
+    anchor = graph.add_node_pose_3d(x1)
     # Anchor pose
-    graph.add_factor_1pose_3d(np.zeros(6), n1, invCov * 1e6)
+    graph.add_factor_1pose_3d(np.zeros(6), anchor, invCov * 1e6)
 
-    trans1 = find_transformation(pcds[1], pcds[0], np.eye(4))
-    x2 = mrob.SE3(trans1 @ mrob.SE3(x1).T()).ln()
-    n2 = graph.add_node_pose_3d(x2)
-    graph.add_factor_2poses_3d(mrob.SE3(trans1).ln(), n1, n2, invCov)
+    vertex_list = [anchor]
+    step1_factors = np.load("1step_trans.npy")
+    print(step1_factors.shape)
+    last_id = anchor
+    pos = mrob.SE3(x1).T()
+    for i in tqdm(range(step1_factors.shape[0])):
+        trans = step1_factors[i]
+        pos = trans @ pos
+        pos_ln = mrob.SE3(pos).ln()
+        new_id = graph.add_node_pose_3d(pos_ln)
+        vertex_list.append(new_id)
+        graph.add_factor_2poses_3d(mrob.SE3(trans).ln(), last_id, new_id, invCov * 1e4)
+        last_id = new_id
 
-    trans2 = find_transformation(pcds[2], pcds[1], np.eye(4))
-    x3 = mrob.SE3(trans2 @ mrob.SE3(x2).T()).ln()
-    n3 = graph.add_node_pose_3d(x3)
-    graph.add_factor_2poses_3d(mrob.SE3(trans2).ln(), n2, n3, invCov)
-
-    trans3 = find_transformation(pcds[2], pcds[0], np.eye(4))
-    print(trans3)
-    print(trans2 @ trans1)
-    graph.add_factor_2poses_3d(mrob.SE3(trans3).ln(), n1, n3, invCov * 1e3)
+    step2_factors = np.load("2step_trans.npy")
+    for i in tqdm(range(step2_factors.shape[0])):
+        trans = step1_factors[i]
+        graph.add_factor_2poses_3d(mrob.SE3(trans).ln(), vertex_list[i], vertex_list[i + 2], invCov)
 
     graph.solve(mrob.GN)
     print_3d_graph(graph)
+
+    x = graph.get_estimated_state()
+    np.save("traj.npy", x)
