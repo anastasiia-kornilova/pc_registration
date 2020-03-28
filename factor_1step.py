@@ -10,6 +10,11 @@ from logger import get_configured_logger_by_name
 logger = get_configured_logger_by_name(__file__)
 
 
+voxel_size = 0.02
+max_correspondence_distance_coarse = voxel_size * 15
+max_correspondence_distance_fine = voxel_size * 1.5
+
+
 def find_transformation(source, target, trans_init):
     threshold = 0.2
     if not source.has_normals():
@@ -21,6 +26,21 @@ def find_transformation(source, target, trans_init):
     transformation = open3d.registration.registration_icp(source, target, threshold
         , trans_init,open3d.registration.TransformationEstimationPointToPlane()).transformation
     return transformation
+
+
+def pairwise_registration(source, target):
+    icp_coarse = open3d.registration.registration_icp(
+        source, target, max_correspondence_distance_coarse, np.identity(4),
+        open3d.registration.TransformationEstimationPointToPlane())
+    icp_fine = open3d.registration.registration_icp(
+        source, target, max_correspondence_distance_fine,
+        icp_coarse.transformation,
+        open3d.registration.TransformationEstimationPointToPlane())
+    transformation_icp = icp_fine.transformation
+    information_icp = open3d.registration.get_information_matrix_from_point_clouds(
+        source, target, max_correspondence_distance_fine,
+        icp_fine.transformation)
+    return transformation_icp, information_icp
 
 
 if __name__ == '__main__':
@@ -37,15 +57,9 @@ if __name__ == '__main__':
 
     step_size = int(sys.argv[2])
     transformations = []
-    if step_size == 2:
-        for i in tqdm(range(len(pcds) - step_size)):
-            trans1 = find_transformation(pcds[i + 1], pcds[i], np.eye(4))
-            trans2 = find_transformation(pcds[i + 2], pcds[i + 1], np.eye(4))
-            trans = find_transformation(pcds[i + 2], pcds[i], trans2 @ trans1)
-            transformations.append(trans)
-    else:
-        for i in tqdm(range(len(pcds) - step_size)):
-            trans = find_transformation(pcds[i + step_size], pcds[i], np.eye(4))
-            transformations.append(trans)
+
+    for i in tqdm(range(len(pcds) - step_size - 1)):
+        trans, _ = pairwise_registration(pcds[i + step_size], pcds[i])
+        transformations.append(trans)
 
     np.save("{0}step_trans.npy".format(step_size), np.asarray(transformations))

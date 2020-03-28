@@ -4,6 +4,7 @@ import glob
 import open3d
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import sys
 
 
 def print_3d_graph(graph):
@@ -37,6 +38,8 @@ def find_transformation(source, target, trans_init):
 
 
 if __name__ == '__main__':
+    steps = int(sys.argv[1])
+
     files = glob.glob('./pcds/*.pcd')
     print(len(files))
     files.sort()
@@ -60,7 +63,7 @@ if __name__ == '__main__':
     print(step1_factors.shape)
     last_id = anchor
     pos = mrob.SE3(x1).T()
-    for i in tqdm(range(step1_factors.shape[0])):
+    for i in tqdm(range(step1_factors.shape[0] - 1)):
         trans = step1_factors[i]
         pos = trans @ pos
         pos_ln = mrob.SE3(pos).ln()
@@ -69,12 +72,13 @@ if __name__ == '__main__':
         graph.add_factor_2poses_3d(mrob.SE3(trans).ln(), last_id, new_id, invCov)
         last_id = new_id
 
-    step2_factors = np.load("2step_trans.npy")
-    for i in tqdm(range(step2_factors.shape[0])):
-        trans = step2_factors[i]
-        graph.add_factor_2poses_3d(mrob.SE3(trans).ln(), vertex_list[i], vertex_list[i + 2], invCov)
+    for i in range(2, steps + 1):
+        step2_factors = np.load("{0}step_trans.npy".format(i))
+        for j in tqdm(range(step1_factors.shape[0] - i)):
+            trans = step2_factors[j]
+            graph.add_factor_2poses_3d(mrob.SE3(trans).ln(), vertex_list[j], vertex_list[j + i], invCov)
 
-    graph.solve(mrob.GN)
+    graph.solve(mrob.LM)
     print_3d_graph(graph)
 
     x = graph.get_estimated_state()
