@@ -66,12 +66,12 @@ if __name__ == '__main__':
         pos_ln = mrob.SE3(pos).ln()
         new_id = graph.add_node_pose_3d(pos_ln)
         vertex_list.append(new_id)
-        graph.add_factor_2poses_3d(mrob.SE3(trans).ln(), last_id, new_id, invCov * 1e4)
+        graph.add_factor_2poses_3d(mrob.SE3(trans).ln(), last_id, new_id, invCov)
         last_id = new_id
 
     step2_factors = np.load("2step_trans.npy")
     for i in tqdm(range(step2_factors.shape[0])):
-        trans = step1_factors[i]
+        trans = step2_factors[i]
         graph.add_factor_2poses_3d(mrob.SE3(trans).ln(), vertex_list[i], vertex_list[i + 2], invCov)
 
     graph.solve(mrob.GN)
