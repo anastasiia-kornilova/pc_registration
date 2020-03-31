@@ -40,16 +40,6 @@ def find_transformation(source, target, trans_init):
 if __name__ == '__main__':
     steps = int(sys.argv[1])
 
-    files = glob.glob('./pcds/*.pcd')
-    print(len(files))
-    files.sort()
-    files = files[:3]
-
-    pcds = []
-    print(files[0])
-    for file in files:
-        pcds.append(open3d.io.read_point_cloud(file))
-
     invCov = np.identity(6)
     graph = mrob.FGraph()
     x1 = np.zeros(6)
@@ -59,7 +49,7 @@ if __name__ == '__main__':
     graph.add_factor_1pose_3d(np.zeros(6), anchor, invCov * 1e6)
 
     vertex_list = [anchor]
-    step1_factors = np.load("1step_trans.npy")
+    step1_factors = np.load("0.npy", allow_pickle=True)
     print(step1_factors.shape)
     last_id = anchor
     pos = mrob.SE3(x1).T()
@@ -73,7 +63,7 @@ if __name__ == '__main__':
         last_id = new_id
 
     for i in range(2, steps + 1):
-        step2_factors = np.load("{0}step_trans.npy".format(i))
+        step2_factors = np.load("{0}.npy".format(i - 1))
         for j in tqdm(range(step1_factors.shape[0] - i)):
             trans = step2_factors[j]
             graph.add_factor_2poses_3d(mrob.SE3(trans).ln(), vertex_list[j], vertex_list[j + i], invCov)
